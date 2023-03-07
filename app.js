@@ -12,7 +12,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 // mongodb://0.0.0.0:27017/todolistDB
 
-mongoose.connect("mongodb+srv://${process.env.ID}@cluster0.ayqboii.mongodb.net/todolistDB", {
+mongoose.connect(`${process.env.url}`, {
   useNewUrlParser: true,
 });
 
@@ -121,7 +121,7 @@ app.post("/delete", function (req, res) {
     });
   } else {
     //this is custom list
-    List.findOneAndUpdate(          
+    List.findOneAndUpdate(
       { name: listName },
       { $pull: { items: { _id: checkedItemId } } },
       function (err, foundList) {
