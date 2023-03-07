@@ -1,7 +1,8 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
-const _=require("lodash");
+const _ = require("lodash");
+require("dotenv").config();
 
 const app = express();
 
@@ -10,12 +11,13 @@ app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 // mongodb://0.0.0.0:27017/todolistDB
-mongoose.connect("mongodb+srv://admin-aman:Test123@cluster0.ayqboii.mongodb.net/todolistDB", {
+
+mongoose.connect("mongodb+srv://${process.env.ID}@cluster0.ayqboii.mongodb.net/todolistDB", {
   useNewUrlParser: true,
 });
 
 const itemsSchema = new mongoose.Schema({
-  name: String
+  name: String,
 });
 
 const Item = mongoose.model("Item", itemsSchema);
@@ -37,7 +39,7 @@ const defaultItems = [item1, item2, item3];
 
 const listSchema = new mongoose.Schema({
   name: String,
-  items: [itemsSchema]
+  items: [itemsSchema],
 });
 
 const List = mongoose.model("List", listSchema);
@@ -70,14 +72,14 @@ app.get("/:customListName", function (req, res) {
         //create list (because it doesn't exist already)
         const list = new List({
           name: customListName,
-          items: defaultItems
+          items: defaultItems,
         });
         list.save();
         res.redirect("/" + customListName); //not the root route but the new dynamic route
       } else {
         // list already exitst
         res.render("list", {
-          listTitle: customListName,//foundList.name,
+          listTitle: customListName, //foundList.name,
           newListItems: foundList.items,
         });
       }
@@ -91,14 +93,13 @@ app.post("/", function (req, res) {
   //creating the new document
   // no matter which list the item came from we still need to create as new item document
   const item = new Item({
-    name: itemName
+    name: itemName,
   });
 
   if (listName === "Today") {
     item.save();
     res.redirect("/");
-  } 
-  else {
+  } else {
     List.findOne({ name: listName }, function (err, foundList) {
       foundList.items.push(item); //we need to push the newly created item into the existing array
       foundList.save();
@@ -108,17 +109,19 @@ app.post("/", function (req, res) {
 });
 
 app.post("/delete", function (req, res) {
-  const checkedItemId = req.body.checkbox; 
-  const listName = req.body.listName; 
-  if (listName === "Today") {//this is default list
+  const checkedItemId = req.body.checkbox;
+  const listName = req.body.listName;
+  if (listName === "Today") {
+    //this is default list
     Item.findByIdAndRemove(checkedItemId, function (err) {
       if (!err) {
         console.log("successfully deleted");
         res.redirect("/");
       }
     });
-  } else {//this is custom list
-    List.findOneAndUpdate(
+  } else {
+    //this is custom list
+    List.findOneAndUpdate(          
       { name: listName },
       { $pull: { items: { _id: checkedItemId } } },
       function (err, foundList) {
@@ -139,6 +142,6 @@ app.get("/about", function (req, res) {
   res.render("about");
 });
 
-app.listen(3000, function () {
+app.listen(process.env.PORT || 3000, function () {
   console.log("Server started on port 3000");
 });
