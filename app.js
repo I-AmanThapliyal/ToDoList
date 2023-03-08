@@ -12,7 +12,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 // mongodb://0.0.0.0:27017/todolistDB
 
-mongoose.connect(`${process.env.url}`, {
+mongoose.connect("mongodb+srv://"+`${process.env.ID}`+"@cluster0.ayqboii.mongodb.net/todolistDB", {
   useNewUrlParser: true,
 });
 
